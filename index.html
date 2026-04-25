@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقييم الصفحات   |  Ivan Shuw</title>
+    <!-- استدعاء خطوط احترافية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --------------------------------------
+           متغيرات الألوان (الوضع الداكن الأساسي والفاتح)
+           -------------------------------------- */
+        :root {
+            --bg-base: #020617; /* لون كحلي داكن جداً */
+            --bg-glass: rgba(15, 23, 42, 0.4);
+            --bg-glass-hover: rgba(30, 41, 59, 0.6);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent-glow: rgba(139, 92, 246, 0.5); /* بنفسجي */
+            --divider: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f1f5f9;
+            --bg-glass: rgba(255, 255, 255, 0.6);
+            --bg-glass-hover: rgba(255, 255, 255, 0.9);
+            --border-glass: rgba(0, 0, 0, 0.05);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --accent-glow: rgba(139, 92, 246, 0.2);
+            --divider: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+        }
+
+        /* --------------------------------------
+           الإعدادات الأساسية
+           -------------------------------------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.8s cubic-bezier(0.22, 1, 0.36, 1), color 0.5s ease;
+        }
+
+        /* تأثير التشويش السينمائي (Grain) */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* --------------------------------------
+           الخلفيات المضيئة المتحركة (Orbs)
+           -------------------------------------- */
+        .ambient-background {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+        }
+        
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.6;
+            animation: floatOrb 20s infinite alternate ease-in-out;
+        }
+
+        .orb-1 { width: 50vw; height: 50vw; background: #4c1d95; top: -10%; right: -10%; }
+        .orb-2 { width: 40vw; height: 40vw; background: #0c4a6e; bottom: -20%; left: -10%; animation-delay: -5s; }
+        .orb-3 { width: 30vw; height: 30vw; background: #1e3a8a; top: 40%; left: 40%; animation-delay: -10s; }
+
+        [data-theme="light"] .orb-1 { background: #d8b4fe; opacity: 0.4; }
+        [data-theme="light"] .orb-2 { background: #bae6fd; opacity: 0.4; }
+        [data-theme="light"] .orb-3 { background: #bfdbfe; opacity: 0.3; }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        #particles-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
+        }
+
+        /* --------------------------------------
+           الهيكل العام (Layout)
+           -------------------------------------- */
+        .container {
+            max-width: 1000px; /* حجم مركزي أنيق */
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --------------------------------------
+           الرأس (Header) وزر التبديل
+           -------------------------------------- */
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+        [data-theme="light"] .header h1 {
+            background: linear-gradient(135deg, #0f172a, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p { font-size: 1.1rem; color: var(--text-sub); }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem; left: 2rem;
+            width: 45px; height: 45px;
+            border-radius: 14px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .theme-toggle:hover { transform: scale(1.1); background: var(--bg-glass-hover); }
+
+        /* --------------------------------------
+           الأقسام (Sections)
+           -------------------------------------- */
+        .section {
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .section.visible { opacity: 1; transform: translateY(0); }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .section-title::after {
+            content: ''; flex-grow: 1; height: 1px;
+            background: var(--divider);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* --------------------------------------
+           تصميم البطاقات الزجاجية 3D
+           -------------------------------------- */
+        .card {
+            text-decoration: none;
+            color: var(--text-main);
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        /* ألوان التوهج المخصصة لكل منصة عند التمرير */
+        .card[data-type="instagram"]:hover { border-color: #e1306c; box-shadow: 0 15px 35px rgba(225, 48, 108, 0.2); }
+        .card[data-type="facebook"]:hover { border-color: #1877f2; box-shadow: 0 15px 35px rgba(24, 119, 242, 0.2); }
+        .card[data-type="tiktok"]:hover { border-color: #00f2fe; box-shadow: 0 15px 35px rgba(0, 242, 254, 0.2); }
+        .card[data-type="snapchat"]:hover { border-color: #fffc00; box-shadow: 0 15px 35px rgba(255, 252, 0, 0.15); }
+        .card[data-type="google"]:hover { border-color: #34a853; box-shadow: 0 15px 35px rgba(52, 168, 83, 0.2); }
+        .card[data-type="youtube"]:hover { border-color: #ff0000; box-shadow: 0 15px 35px rgba(255, 0, 0, 0.2); }
+
+        .card-content {
+            transform: translateZ(30px); /* البعد الثلاثي للمحتوى */
+            flex-grow: 1;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .card-sub { font-size: 0.85rem; color: var(--text-sub); }
+
+        /* الأيقونات */
+        .icon-wrapper {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(255,255,255,0.05);
+            transform: translateZ(40px);
+            transition: transform 0.3s ease;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .card:hover .icon-wrapper { transform: translateZ(50px) scale(1.1); }
+        
+        .icon-wrapper svg { width: 28px; height: 28px; }
+
+        /* تأثير النقر (Ripple) */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-anim 0.6s linear;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: 1;
+        }
+        [data-theme="light"] .ripple { background: rgba(0, 0, 0, 0.1); }
+
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- مؤثرات بصرية -->
+    <div class="noise-overlay"></div>
+    <div class="ambient-background">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- زر تبديل المظهر -->
+    <button class="theme-toggle" id="themeBtn">
+        <svg id="moon-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
+
+    <div class="container">
+        
+        <header class="header">
+            <h1>اداء صفحات التواصل الاجتماعي </h1>
+            <p>  تحديث شهري للتقارير تلقائيا </p>
+        </header>
+
+        <!-- ================= قسم إنستغرام ================= -->
+        <section class="section">
+            <h2 class="section-title">إنستغرام</h2>
+            <div class="grid">
+                <!-- الرابط الذي أرسلته (الجديد) -->
+                <a href="https://mazn44.github.io/InstagramG/" class="card" data-type="instagram">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="url(#ig-grad)"><defs><linearGradient id="ig-grad" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">إنستغرام الجديد</div>
+                        <div class="card-sub">النسخة الحديثة والمطورة</div>
+                    </div>
+                </a>
+
+                <!-- الرابط الذي أرسلته (القديم) -->
+                <a href="https://mazn44.github.io/InstagramA/" class="card" data-type="instagram">
+                    <div class="icon-wrapper">
+                         <svg viewBox="0 0 24 24" fill="#a8a29e"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">إنستغرام القديم</div>
+                        <div class="card-sub">النسخة الكلاسيكية الأساسية</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ================= قسم فيسبوك ================= -->
+        <section class="section">
+            <h2 class="section-title">فيسبوك</h2>
+            <div class="grid">
+                <!-- ضع رابط فيسبوك الجديد بدلاً من علامة # -->
+                <a href="#" class="card" data-type="facebook">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">فيسبوك الجديد</div>
+                        <div class="card-sub">الواجهة العصرية</div>
+                    </div>
+                </a>
+
+                <!-- ضع رابط فيسبوك القديم بدلاً من علامة # -->
+                <a href="#" class="card" data-type="facebook">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#60a5fa"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">فيسبوك القديم</div>
+                        <div class="card-sub">الواجهة الكلاسيكية</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ================= قسم تيك توك ================= -->
+        <section class="section">
+            <h2 class="section-title">تيك توك</h2>
+            <div class="grid">
+                <!-- ضع رابط تيك توك الجديد بدلاً من علامة # -->
+                <a href="#" class="card" data-type="tiktok">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">تيك توك الجديد</div>
+                        <div class="card-sub">الميزات الأحدث</div>
+                    </div>
+                </a>
+
+                <!-- ضع رابط تيك توك القديم بدلاً من علامة # -->
+                <a href="#" class="card" data-type="tiktok">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#94a3b8"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">تيك توك القديم</div>
+                        <div class="card-sub">النسخة السابقة</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ================= قسم سناب شات ================= -->
+        <section class="section">
+            <h2 class="section-title">سناب شات</h2>
+            <div class="grid">
+                <!-- ضع رابط سناب شات الجديد بدلاً من علامة # -->
+                <a href="#" class="card" data-type="snapchat">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#fffc00"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">سناب شات الجديد</div>
+                        <div class="card-sub">الفلاتر العصرية</div>
+                    </div>
+                </a>
+
+                <!-- ضع رابط سناب شات القديم بدلاً من علامة # -->
+                <a href="#" class="card" data-type="snapchat">
+                    <div class="icon-wrapper">
+                         <svg viewBox="0 0 24 24" fill="#fde047"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">سناب شات القديم</div>
+                        <div class="card-sub">النسخة الكلاسيكية</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ================= منصات أخرى ================= -->
+        <section class="section">
+            <h2 class="section-title">منصات أخرى</h2>
+            <div class="grid">
+                <!-- الرابط الذي أرسلته (خرائط جوجل) -->
+                <a href="https://mazn44.github.io/Google/" class="card" data-type="google">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#34a853"><path d="M12.005 0C7.545 0 3.93 3.615 3.93 8.075c0 1.255.32 2.455.875 3.515C6.44 14.72 10.97 22.8 11.455 23.63a.628.628 0 001.1 0c.485-.83 5.015-8.91 6.65-12.04.555-1.06.875-2.26.875-3.515C20.08 3.615 16.465 0 12.005 0zm0 11.23c-1.74 0-3.155-1.415-3.155-3.155 0-1.74 1.415-3.155 3.155-3.155 1.74 0 3.155 1.415 3.155 3.155 0 1.74-1.415 3.155-3.155 3.155z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">خرائط جوجل</div>
+                        <div class="card-sub">الموقع والاتجاهات</div>
+                    </div>
+                </a>
+
+                <!-- ضع رابط يوتيوب بدلاً من علامة # -->
+                <a href="#" class="card" data-type="youtube">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#ff0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">يوتيوب</div>
+                        <div class="card-sub">قناة الفيديوهات</div>
+                    </div>
+                </a>
+
+                <!-- ضع رابط قنوات المعرض بدلاً من علامة # -->
+                <a href="#" class="card" data-type="youtube">
+                    <div class="icon-wrapper">
+                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">قنوات المعرض</div>
+                        <div class="card-sub">استعراض الأقسام والتصاميم</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --------------------------------------------------
+        // 1. نظام الجزيئات الخفيف (Particles System - 60fps)
+        // --------------------------------------------------
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.4;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if(this.x > canvas.width) this.x = 0;
+                if(this.x < 0) this.x = canvas.width;
+                if(this.y > canvas.height) this.y = 0;
+                if(this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                // اللون يتغير حسب المظهر (فاتح/داكن)
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                ctx.fillStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let count = window.innerWidth < 768 ? 30 : 60; // تخفيف العدد للموبايل
+            for (let i = 0; i < count; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        // --------------------------------------------------
+        // 2. تأثير الميلان 3D للبطاقات (3D Tilt Effect)
+        // --------------------------------------------------
+        const cards = document.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                // حسابات دقيقة لميلان ناعم جداً
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -8; // أقصى ميل 8 درجات
+                const rotateY = ((x - centerX) / centerX) * 8;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+            });
+
+            // --------------------------------------------------
+            // 3. تأثير النبضة الضوئية عند النقر (Ripple Click Effect)
+            // --------------------------------------------------
+            card.addEventListener('click', function(e) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                // تحديد حجم النبضة ليغطي البطاقة
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.transform = `translate(-50%, -50%) scale(0)`;
+                
+                this.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // --------------------------------------------------
+        // 4. تبديل المظهر (Dark / Light Mode)
+        // --------------------------------------------------
+        const themeBtn = document.getElementById('themeBtn');
+        const htmlDoc = document.documentElement;
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlDoc.getAttribute('data-theme');
+            if(currentTheme === 'light') {
+                htmlDoc.removeAttribute('data-theme');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                htmlDoc.setAttribute('data-theme', 'light');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        });
+
+        // --------------------------------------------------
+        // 5. ظهور الأقسام بشكل تدريجي عند التمرير (Scroll Reveal)
+        // --------------------------------------------------
+        const sections = document.querySelectorAll('.section');
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+
+    </script>
+</body>
+</html>
+
