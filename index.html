@@ -1,597 +1,1138 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقييم الصفحات   |  Ivan Shuw</title>
-    <!-- استدعاء خطوط احترافية -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    
+    <title>Ivan shuw  | مركز الأداء الرقمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* --------------------------------------
-           متغيرات الألوان (الوضع الداكن الأساسي والفاتح)
-           -------------------------------------- */
+        /* ===== DESIGN TOKENS ===== */
         :root {
-            --bg-base: #020617; /* لون كحلي داكن جداً */
-            --bg-glass: rgba(15, 23, 42, 0.4);
-            --bg-glass-hover: rgba(30, 41, 59, 0.6);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --accent-glow: rgba(139, 92, 246, 0.5); /* بنفسجي */
-            --divider: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            --gold: #c9a227;
+            --gold-light: #f0d060;
+            --gold-dark: #8a6e1a;
+            --ivory: #fdf8ee;
+            --dark: #0a0704;
+            --dark-2: #130f08;
+            --dark-3: #1c1610;
+            --dark-card: rgba(20,15,8,0.85);
+            --border-gold: rgba(201,162,39,0.3);
+            --border-gold-strong: rgba(201,162,39,0.7);
+            --text-ivory: #fdf8ee;
+            --text-muted: #b09060;
+            --red-ivan: #cc2200;
+            --red-light: #ff4422;
+            --bg-mode: var(--dark);
+            --card-mode: var(--dark-card);
+            --text-mode: var(--text-ivory);
+            --sub-mode: var(--text-muted);
+            --header-gradient: linear-gradient(135deg, var(--dark) 0%, #1a1000 50%, var(--dark) 100%);
         }
-
         [data-theme="light"] {
-            --bg-base: #f1f5f9;
-            --bg-glass: rgba(255, 255, 255, 0.6);
-            --bg-glass-hover: rgba(255, 255, 255, 0.9);
-            --border-glass: rgba(0, 0, 0, 0.05);
-            --text-main: #0f172a;
-            --text-sub: #475569;
-            --accent-glow: rgba(139, 92, 246, 0.2);
-            --divider: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+            --bg-mode: #fdf6e3;
+            --card-mode: rgba(255,248,225,0.92);
+            --text-mode: #1a1200;
+            --sub-mode: #7a5a20;
+            --header-gradient: linear-gradient(135deg, #fff8e7 0%, #ffefc0 50%, #fff8e7 100%);
         }
 
-        /* --------------------------------------
-           الإعدادات الأساسية
-           -------------------------------------- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Cairo', 'Inter', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+            background: var(--bg-mode);
+            color: var(--text-mode);
             min-height: 100vh;
             overflow-x: hidden;
-            transition: background-color 0.8s cubic-bezier(0.22, 1, 0.36, 1), color 0.5s ease;
+            transition: background 0.7s ease, color 0.5s ease;
+            position: relative;
         }
 
-        /* تأثير التشويش السينمائي (Grain) */
-        .noise-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+        /* ===== NOISE GRAIN ===== */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.025;
             pointer-events: none;
-            z-index: 9999;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            z-index: 9998;
         }
 
-        /* --------------------------------------
-           الخلفيات المضيئة المتحركة (Orbs)
-           -------------------------------------- */
-        .ambient-background {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: -2;
-            overflow: hidden;
-        }
-        
+        /* ===== AMBIENT ORBS ===== */
+        .orbs { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
         .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.6;
-            animation: floatOrb 20s infinite alternate ease-in-out;
+            position: absolute; border-radius: 50%; filter: blur(130px);
+            animation: drift 25s infinite alternate ease-in-out;
         }
-
-        .orb-1 { width: 50vw; height: 50vw; background: #4c1d95; top: -10%; right: -10%; }
-        .orb-2 { width: 40vw; height: 40vw; background: #0c4a6e; bottom: -20%; left: -10%; animation-delay: -5s; }
-        .orb-3 { width: 30vw; height: 30vw; background: #1e3a8a; top: 40%; left: 40%; animation-delay: -10s; }
-
-        [data-theme="light"] .orb-1 { background: #d8b4fe; opacity: 0.4; }
-        [data-theme="light"] .orb-2 { background: #bae6fd; opacity: 0.4; }
-        [data-theme="light"] .orb-3 { background: #bfdbfe; opacity: 0.3; }
-
-        @keyframes floatOrb {
+        .orb-1 { width: 55vw; height: 55vw; background: radial-gradient(circle, rgba(201,162,39,0.25), transparent); top: -15%; right: -15%; animation-duration: 22s; }
+        .orb-2 { width: 45vw; height: 45vw; background: radial-gradient(circle, rgba(180,30,10,0.2), transparent); bottom: -20%; left: -10%; animation-duration: 28s; animation-delay: -8s; }
+        .orb-3 { width: 35vw; height: 35vw; background: radial-gradient(circle, rgba(201,162,39,0.15), transparent); top: 45%; left: 35%; animation-delay: -14s; }
+        [data-theme="light"] .orb-1 { background: radial-gradient(circle, rgba(201,162,39,0.15), transparent); }
+        [data-theme="light"] .orb-2 { background: radial-gradient(circle, rgba(180,30,10,0.08), transparent); }
+        [data-theme="light"] .orb-3 { background: radial-gradient(circle, rgba(201,162,39,0.1), transparent); }
+        @keyframes drift {
             0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(100px, 100px) scale(1.2); }
+            100% { transform: translate(80px, 80px) scale(1.15); }
         }
 
-        #particles-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
+        canvas#particles { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+        /* ===== SCROLL INDICATOR ===== */
+        #scroll-bar {
+            position: fixed; top: 0; left: 0; height: 3px; width: 0;
+            background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
+            z-index: 10000; transition: width 0.1s;
         }
 
-        /* --------------------------------------
-           الهيكل العام (Layout)
-           -------------------------------------- */
-        .container {
-            max-width: 1000px; /* حجم مركزي أنيق */
-            margin: 0 auto;
-            padding: 4rem 2rem;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* --------------------------------------
-           الرأس (Header) وزر التبديل
-           -------------------------------------- */
-        .header {
-            text-align: center;
-            margin-bottom: 4rem;
-            animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            letter-spacing: -1px;
-        }
-        [data-theme="light"] .header h1 {
-            background: linear-gradient(135deg, #0f172a, #475569);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header p { font-size: 1.1rem; color: var(--text-sub); }
-
-        .theme-toggle {
-            position: fixed;
-            top: 2rem; left: 2rem;
-            width: 45px; height: 45px;
-            border-radius: 14px;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-glass);
-            backdrop-filter: blur(10px);
-            color: var(--text-main);
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 100;
+        /* ===== THEME TOGGLE ===== */
+        .theme-btn {
+            position: fixed; top: 1.2rem; left: 1.2rem;
+            width: 48px; height: 48px; border-radius: 14px;
+            background: var(--card-mode);
+            border: 1px solid var(--border-gold);
+            backdrop-filter: blur(12px);
+            color: var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 1000;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 15px rgba(201,162,39,0.1);
         }
-        .theme-toggle:hover { transform: scale(1.1); background: var(--bg-glass-hover); }
+        .theme-btn:hover { transform: scale(1.08) rotate(15deg); box-shadow: 0 6px 25px rgba(201,162,39,0.3); }
 
-        /* --------------------------------------
-           الأقسام (Sections)
-           -------------------------------------- */
-        .section {
-            margin-bottom: 4rem;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        /* ===== FLOATING NAV ===== */
+        .floating-nav {
+            position: fixed; top: 1.2rem; right: 50%; transform: translateX(50%);
+            background: var(--card-mode);
+            border: 1px solid var(--border-gold);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            display: flex; gap: 0.3rem; align-items: center;
+            z-index: 999;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(201,162,39,0.1);
         }
-        .section.visible { opacity: 1; transform: translateY(0); }
-
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .section-title::after {
-            content: ''; flex-grow: 1; height: 1px;
-            background: var(--divider);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        /* --------------------------------------
-           تصميم البطاقات الزجاجية 3D
-           -------------------------------------- */
-        .card {
+        .nav-item {
+            font-size: 0.75rem; font-weight: 700;
+            color: var(--sub-mode);
             text-decoration: none;
-            color: var(--text-main);
-            background: var(--bg-glass);
-            border: 1px solid var(--border-glass);
-            border-radius: 20px;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1.2rem;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            transform-style: preserve-3d;
+            padding: 0.4rem 0.9rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: var(--dark);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
             position: relative;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             overflow: hidden;
-            transition: border-color 0.4s ease, box-shadow 0.4s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+            padding: 2rem;
         }
 
-        /* ألوان التوهج المخصصة لكل منصة عند التمرير */
-        .card[data-type="instagram"]:hover { border-color: #e1306c; box-shadow: 0 15px 35px rgba(225, 48, 108, 0.2); }
-        .card[data-type="facebook"]:hover { border-color: #1877f2; box-shadow: 0 15px 35px rgba(24, 119, 242, 0.2); }
-        .card[data-type="tiktok"]:hover { border-color: #00f2fe; box-shadow: 0 15px 35px rgba(0, 242, 254, 0.2); }
-        .card[data-type="snapchat"]:hover { border-color: #fffc00; box-shadow: 0 15px 35px rgba(255, 252, 0, 0.15); }
-        .card[data-type="google"]:hover { border-color: #34a853; box-shadow: 0 15px 35px rgba(52, 168, 83, 0.2); }
-        .card[data-type="youtube"]:hover { border-color: #ff0000; box-shadow: 0 15px 35px rgba(255, 0, 0, 0.2); }
-
-        .card-content {
-            transform: translateZ(30px); /* البعد الثلاثي للمحتوى */
-            flex-grow: 1;
-            z-index: 2;
-            pointer-events: none;
+        /* Building background */
+        .hero-bg-building {
+            position: absolute; inset: 0;
+            background: url('data:image/jpeg;base64,/9j/') center/cover no-repeat;
+            filter: brightness(0.12) saturate(0.3);
+            z-index: 0;
         }
 
-        .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
-        .card-sub { font-size: 0.85rem; color: var(--text-sub); }
-
-        /* الأيقونات */
-        .icon-wrapper {
-            width: 50px; height: 50px;
-            border-radius: 12px;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(255,255,255,0.05);
-            transform: translateZ(40px);
-            transition: transform 0.3s ease;
-            z-index: 2;
-            pointer-events: none;
-        }
-        .card:hover .icon-wrapper { transform: translateZ(50px) scale(1.1); }
-        
-        .icon-wrapper svg { width: 28px; height: 28px; }
-
-        /* تأثير النقر (Ripple) */
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple-anim 0.6s linear;
-            background: rgba(255, 255, 255, 0.2);
-            pointer-events: none;
+        /* Replaced with CSS art building since we can't embed image directly — using overlay gradient */
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 100%, rgba(180,30,10,0.1) 0%, transparent 60%),
+                linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(10,7,4,0.4) 50%, rgba(0,0,0,0.85) 100%);
             z-index: 1;
         }
-        [data-theme="light"] .ripple { background: rgba(0, 0, 0, 0.1); }
 
-        @keyframes ripple-anim {
-            to { transform: scale(4); opacity: 0; }
+        .hero-content {
+            position: relative; z-index: 2;
+            text-align: center;
+            animation: heroReveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
+
+        @keyframes heroReveal {
+            from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* LOGO area */
+        .logo-container {
+            width: 130px; height: 130px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--dark-3), var(--dark));
+            border: 2px solid var(--border-gold-strong);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 40px rgba(201,162,39,0.4), 0 0 80px rgba(201,162,39,0.15), inset 0 0 30px rgba(201,162,39,0.05);
+            animation: logoPulse 4s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(201,162,39,0.4), 0 0 80px rgba(201,162,39,0.15); }
+            50% { box-shadow: 0 0 60px rgba(201,162,39,0.6), 0 0 120px rgba(201,162,39,0.25); }
+        }
+        .logo-container img {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            filter: drop-shadow(0 0 10px rgba(201,162,39,0.5));
+        }
+
+        /* SVG Logo fallback (Ivan Show styled) */
+        .logo-svg-ivan {
+            width: 90px; height: 90px;
+        }
+
+        /* Gold ring spinning */
+        .logo-ring {
+            position: absolute; inset: -8px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--gold);
+            border-right-color: var(--gold-light);
+            animation: spin 6s linear infinite;
+        }
+        .logo-ring-2 {
+            position: absolute; inset: -14px;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            border-bottom-color: rgba(201,162,39,0.4);
+            border-left-color: rgba(201,162,39,0.2);
+            animation: spin 10s linear infinite reverse;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hero-brand {
+            font-family: 'Cairo', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            font-weight: 900;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 40%, var(--gold-light) 60%, var(--gold) 80%, var(--gold-dark) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer { to { background-position: 200% center; } }
+
+        .hero-sub {
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .hero-tagline {
+            font-size: clamp(0.85rem, 2vw, 1.05rem);
+            color: rgba(201,162,39,0.7);
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+        }
+
+        /* Badge row */
+        .badge-row {
+            display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .badge {
+            padding: 0.35rem 1rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 1px solid;
+        }
+        .badge-gold { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.08); }
+        .badge-red { border-color: var(--red-ivan); color: var(--red-light); background: rgba(180,30,10,0.08); }
+        .badge-premium { border-color: var(--gold-light); color: var(--gold-light); background: rgba(240,208,96,0.08); animation: badgePulse 2s ease-in-out infinite; }
+        @keyframes badgePulse {
+            0%,100% { box-shadow: 0 0 0 rgba(201,162,39,0); }
+            50% { box-shadow: 0 0 15px rgba(201,162,39,0.35); }
+        }
+
+        /* Stats row hero */
+        .hero-stats {
+            display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .hero-stat { text-align: center; }
+        .hero-stat-num {
+            font-size: clamp(1.6rem, 4vw, 2.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Hero scroll arrow */
+        .scroll-hint {
+            position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+            opacity: 0.6; animation: bounce 2s ease-in-out infinite;
+            color: var(--gold); font-size: 0.7rem;
+        }
+        @keyframes bounce { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,10px)} }
+
+        /* Building image section */
+        .building-section {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin: 2rem auto 0;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid var(--border-gold-strong);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(201,162,39,0.15);
+        }
+        .building-section img {
+            width: 100%;
+            display: block;
+            filter: saturate(1.1) contrast(1.05);
+        }
+        .building-overlay-text {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(0deg, rgba(10,7,4,0.95) 0%, transparent 100%);
+            padding: 2rem 1.5rem 1.2rem;
+            text-align: center;
+        }
+        .building-label {
+            font-size: 1.1rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .building-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+        /* ===== MAIN LAYOUT ===== */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem 6rem;
+            position: relative; z-index: 10;
+        }
+
+        /* ===== SECTION COMPONENTS ===== */
+        .section {
+            margin-bottom: 5rem;
+            opacity: 0; transform: translateY(40px);
+            transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .section.visible { opacity: 1; transform: translateY(0); }
+
+        .section-header {
+            display: flex; align-items: center; gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .section-icon {
+            width: 46px; height: 46px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05));
+            border: 1px solid var(--border-gold);
+            font-size: 1.3rem; flex-shrink: 0;
+        }
+        .section-title-text {
+            font-size: 1.35rem; font-weight: 800;
+            color: var(--text-mode);
+            flex-grow: 1;
+        }
+        .section-divider {
+            flex-grow: 1; height: 1px;
+            background: linear-gradient(90deg, var(--border-gold-strong), transparent);
+        }
+        .section-badge {
+            font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px;
+            padding: 0.25rem 0.8rem; border-radius: 20px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: var(--dark); text-transform: uppercase;
+        }
+
+        /* ===== GRID ===== */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.2rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+
+        /* ===== CARDS ===== */
+        .card {
+            text-decoration: none;
+            color: var(--text-mode);
+            background: var(--card-mode);
+            border: 1px solid var(--border-gold);
+            border-radius: 20px;
+            padding: 1.4rem 1.3rem;
+            display: flex; align-items: center; gap: 1.1rem;
+            backdrop-filter: blur(16px) saturate(160%);
+            position: relative; overflow: hidden;
+            transform-style: preserve-3d;
+            transition: border-color 0.4s, box-shadow 0.4s, transform 0.2s;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
+            cursor: pointer;
+        }
+        .card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(201,162,39,0.05) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .card:hover::before { opacity: 1; }
+
+        /* Platform-specific hover glows */
+        .card[data-type="instagram"]:hover { border-color: #e1306c; box-shadow: 0 16px 40px rgba(225,48,108,0.2), 0 0 0 1px rgba(225,48,108,0.1); }
+        .card[data-type="facebook"]:hover { border-color: #1877f2; box-shadow: 0 16px 40px rgba(24,119,242,0.2), 0 0 0 1px rgba(24,119,242,0.1); }
+        .card[data-type="tiktok"]:hover { border-color: #00f2ea; box-shadow: 0 16px 40px rgba(0,242,234,0.2), 0 0 0 1px rgba(0,242,234,0.1); }
+        .card[data-type="snapchat"]:hover { border-color: #fffc00; box-shadow: 0 16px 40px rgba(255,252,0,0.15), 0 0 0 1px rgba(255,252,0,0.1); }
+        .card[data-type="google"]:hover { border-color: #34a853; box-shadow: 0 16px 40px rgba(52,168,83,0.2), 0 0 0 1px rgba(52,168,83,0.1); }
+        .card[data-type="youtube"]:hover { border-color: #ff0000; box-shadow: 0 16px 40px rgba(255,0,0,0.2), 0 0 0 1px rgba(255,0,0,0.1); }
+        .card[data-type="gold"]:hover { border-color: var(--gold); box-shadow: 0 16px 40px rgba(201,162,39,0.3), 0 0 0 1px rgba(201,162,39,0.2); }
+
+        .card-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+            transform: translateZ(30px);
+        }
+        .card:hover .card-icon { transform: translateZ(40px) scale(1.1); }
+        .card-icon svg { width: 28px; height: 28px; }
+        .card-icon img { width: 30px; height: 30px; border-radius: 6px; object-fit: contain; }
+
+        .card-body { flex-grow: 1; transform: translateZ(20px); pointer-events: none; }
+        .card-title { font-size: 1rem; font-weight: 800; margin-bottom: 0.2rem; }
+        .card-desc { font-size: 0.8rem; color: var(--sub-mode); line-height: 1.4; }
+        .card-arrow {
+            font-size: 0.9rem; color: var(--text-muted); flex-shrink: 0;
+            transition: transform 0.3s ease; transform: translateZ(20px);
+        }
+        .card:hover .card-arrow { transform: translateX(-5px) translateZ(20px); color: var(--gold); }
+
+        /* Tag on card */
+        .card-tag {
+            position: absolute; top: 0.8rem; left: 0.8rem;
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 1.5px;
+            padding: 0.15rem 0.55rem; border-radius: 10px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: var(--dark); text-transform: uppercase;
+        }
+
+        /* Ripple */
+        .ripple-fx {
+            position: absolute; border-radius: 50%;
+            background: rgba(201,162,39,0.2);
+            transform: scale(0);
+            animation: rippleOut 0.65s linear forwards;
+            pointer-events: none; z-index: 0;
+        }
+        @keyframes rippleOut { to { transform: scale(4); opacity: 0; } }
+
+        /* ===== PERFORMANCE CARD (Big) ===== */
+        .perf-card {
+            background: var(--card-mode);
+            border: 1px solid var(--border-gold);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            position: relative; overflow: hidden;
+        }
+        .perf-card::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+        }
+        .perf-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 1.5rem; }
+        .perf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; text-align: center; }
+        .perf-num {
+            font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .perf-label { font-size: 0.75rem; color: var(--sub-mode); margin-top: 0.2rem; }
+
+        /* ===== PLAN CARDS ===== */
+        .plan-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+        .plan-card {
+            background: var(--card-mode);
+            border: 1px solid var(--border-gold);
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
+            backdrop-filter: blur(16px);
+            position: relative; overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.4s ease;
+            text-align: center;
+        }
+        .plan-card:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
+        .plan-card.featured {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 2px rgba(201,162,39,0.3), 0 20px 60px rgba(201,162,39,0.15);
+        }
+        .plan-card.featured::before {
+            content: '⭐ الأكثر طلباً';
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: var(--dark); font-size: 0.65rem; font-weight: 800;
+            padding: 0.3rem 1.2rem; border-radius: 0 0 14px 14px;
+            letter-spacing: 1px;
+        }
+        .plan-icon { font-size: 2.5rem; margin-bottom: 0.8rem; display: block; }
+        .plan-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem; }
+        .plan-desc { font-size: 0.8rem; color: var(--sub-mode); margin-bottom: 1.2rem; }
+        .plan-features { list-style: none; text-align: right; margin-bottom: 1.5rem; }
+        .plan-features li { font-size: 0.82rem; padding: 0.35rem 0; border-bottom: 1px solid var(--border-gold); display: flex; gap: 0.5rem; align-items: center; }
+        .plan-features li::before { content: '✦'; color: var(--gold); font-size: 0.6rem; }
+        .plan-btn {
+            display: inline-block; padding: 0.7rem 1.8rem;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: var(--dark); font-weight: 800; border-radius: 30px;
+            text-decoration: none; font-size: 0.9rem;
+            transition: box-shadow 0.3s; cursor: pointer; border: none;
+        }
+        .plan-card:not(.featured) .plan-btn {
+            background: transparent;
+            border: 1px solid var(--border-gold-strong);
+            color: var(--gold);
+        }
+        .plan-btn:hover { box-shadow: 0 8px 25px rgba(201,162,39,0.4); }
+
+        /* ===== TIMELINE ===== */
+        .timeline { position: relative; padding-right: 2rem; }
+        .timeline::before {
+            content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(180deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+        }
+        .timeline-item { position: relative; margin-bottom: 1.8rem; }
+        .timeline-dot {
+            position: absolute; right: -2.4rem; top: 0.3rem;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 10px var(--gold), 0 0 20px rgba(201,162,39,0.4);
+        }
+        .timeline-content {
+            background: var(--card-mode);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px; padding: 1rem 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+        .timeline-title { font-size: 0.95rem; font-weight: 700; }
+        .timeline-desc { font-size: 0.8rem; color: var(--sub-mode); margin-top: 0.3rem; }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center; padding: 3rem 1.5rem;
+            border-top: 1px solid var(--border-gold);
+            position: relative; overflow: hidden;
+        }
+        .footer::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 50% 100%, rgba(201,162,39,0.08), transparent 70%);
+        }
+        .footer-logo {
+            font-family: 'Cairo', sans-serif; font-size: 2rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .footer-text { font-size: 0.8rem; color: var(--sub-mode); margin-bottom: 1.5rem; }
+        .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+        .footer-link { font-size: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
+        .footer-link:hover { color: var(--gold); }
+        .footer-copy { font-size: 0.7rem; color: var(--sub-mode); margin-top: 2rem; }
+
+        /* ===== BACK TO TOP ===== */
+        #back-top {
+            position: fixed; bottom: 2rem; left: 2rem; z-index: 999;
+            width: 46px; height: 46px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            border: none; cursor: pointer; color: var(--dark);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: 700;
+            box-shadow: 0 8px 25px rgba(201,162,39,0.4);
+            opacity: 0; transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        #back-top.visible { opacity: 1; transform: translateY(0); }
+        #back-top:hover { transform: translateY(-4px); }
+
+        /* ===== SECTION SEPARATOR ===== */
+        .sep {
+            text-align: center; margin: 3rem 0;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .sep-line { flex-grow: 1; height: 1px; background: var(--border-gold); }
+        .sep-icon { color: var(--gold); font-size: 1.2rem; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .floating-nav { display: none; }
+            .hero-stats { gap: 1.5rem; }
+            .perf-grid { grid-template-columns: repeat(2, 1fr); }
+            .plan-cards { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .perf-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== ANIMATION DELAYS ===== */
+        .section:nth-child(1) { transition-delay: 0s; }
+        .section:nth-child(2) { transition-delay: 0.1s; }
+        .section:nth-child(3) { transition-delay: 0.15s; }
+        .section:nth-child(4) { transition-delay: 0.2s; }
+        .section:nth-child(5) { transition-delay: 0.25s; }
+
+        /* ===== TOOLTIP ===== */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+            background: rgba(10,7,4,0.95); color: var(--gold);
+            font-size: 0.7rem; padding: 0.4rem 0.8rem; border-radius: 8px;
+            white-space: nowrap; border: 1px solid var(--border-gold);
+            pointer-events: none; z-index: 100;
+        }
+
+        /* ===== CUSTOM SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--dark-2); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--gold-dark), var(--gold)); border-radius: 3px; }
+
+        /* ===== SELECTION ===== */
+        ::selection { background: rgba(201,162,39,0.3); color: var(--gold-light); }
+
+        /* ===== LIVE DOT ===== */
+        .live-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #22c55e;
+            animation: livePulse 1.5s ease-in-out infinite;
+            display: inline-block; margin-left: 6px;
+        }
+        @keyframes livePulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
+            50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+        }
     </style>
 </head>
 <body>
 
-    <!-- مؤثرات بصرية -->
-    <div class="noise-overlay"></div>
-    <div class="ambient-background">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+<!-- Ambient -->
+<div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+</div>
+<canvas id="particles"></canvas>
+<div id="scroll-bar"></div>
+
+<!-- Theme Toggle -->
+<button class="theme-btn" id="themeBtn" data-tooltip="تبديل المظهر">
+    <svg id="moon-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="sun-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+
+<!-- Floating Nav -->
+<nav class="floating-nav">
+    <a href="#social" class="nav-item">التواصل</a>
+    <a href="#performance" class="nav-item">الأداء</a>
+    <a href="#plans" class="nav-item">الخطط</a>
+    <a href="#milestones" class="nav-item">المسيرة</a>
+    <a href="#other" class="nav-item">أخرى</a>
+</nav>
+
+<!-- Back to Top -->
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <!-- LOGO -->
+        <div class="logo-container">
+            <div class="logo-ring"></div>
+            <div class="logo-ring-2"></div>
+            <!-- Logo SVG - Ivan Show styled -->
+            <svg class="logo-svg-ivan" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#0a0704" stroke="#c9a227" stroke-width="2"/>
+                <!-- Decorative swirls -->
+                <g opacity="0.9">
+                    <circle cx="32" cy="38" r="5" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+                    <circle cx="25" cy="50" r="7" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+                    <circle cx="30" cy="63" r="4" fill="none" stroke="#c9a227" stroke-width="1"/>
+                    <circle cx="42" cy="45" r="3" fill="none" stroke="#f0d060" stroke-width="1"/>
+                    <path d="M20 40 Q28 30 36 42 Q28 52 20 46" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+                    <path d="M22 55 Q32 45 40 57" fill="none" stroke="#c9a227" stroke-width="1"/>
+                </g>
+                <!-- Letter i -->
+                <text x="54" y="78" font-family="Georgia,serif" font-size="52" font-style="italic" fill="white" text-anchor="middle">i</text>
+                <!-- Red dot -->
+                <circle cx="66" cy="22" r="9" fill="#cc2200"/>
+            </svg>
+        </div>
+
+        <div class="hero-brand">Ivan shuw </div>
+        <div class="hero-sub">Ivan Show</div>
+        <div class="hero-tagline">مركز الأداء الرقمي · قسم التسويق والتطوير </div>
+
+        <div class="badge-row">
+            <span class="badge badge-gold">PLUS ✦</span>
+            <span class="badge badge-premium">PREMIUM ★</span>
+            <span class="badge badge-red">PRO ◆</span>
+        </div>
+
+        <!-- Building Image -->
+        <div class="building-section">
+            <img src="1000607523.jpg" alt="واجهة  Ivan shuw  للتسويق " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+            <div style="display:none; padding:4rem; text-align:center; background:linear-gradient(135deg,#130f08,#0a0704);">
+                <div style="font-size:4rem">🏢</div>
+                <div style="color:var(--gold); font-size:1.1rem; font-weight:700; margin-top:1rem">إيفان شو - المعرض الكبرى</div>
+            </div>
+            <div class="building-overlay-text">
+                <div class="building-label">Ivan shuw  </div>
+                <div class="building-sub">قسم التسويق والتطوير  </div>
+            </div>
+        </div>
+
+        <div class="hero-stats" style="margin-top:2rem;">
+            <div class="hero-stat"><div class="hero-stat-num">6+</div><div class="hero-stat-label">منصات نشطة</div></div>
+            <div class="hero-stat"><div class="hero-stat-num">2</div><div class="hero-stat-label">حسابات لكل منصة</div></div>
+            <div class="hero-stat"><div class="hero-stat-num">100%</div><div class="hero-stat-label">تغطية رقمية</div></div>
+        </div>
     </div>
-    <canvas id="particles-canvas"></canvas>
 
-    <!-- زر تبديل المظهر -->
-    <button class="theme-toggle" id="themeBtn">
-        <svg id="moon-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        <svg id="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-    </button>
+    <div class="scroll-hint">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+        تمرر للأسفل
+    </div>
+</section>
 
-    <div class="container">
-        
-        <header class="header">
-            <h1>اداء صفحات التواصل الاجتماعي </h1>
-            <p> تحديث شهري آلي للتقارير وتحليل نقاط القوة والضعف في الصفحات  </p>
-        </header>
+<!-- ==================== MAIN CONTENT ==================== -->
+<div class="container">
 
-        <!-- ================= قسم إنستغرام ================= -->
-        <section class="section">
-            <h2 class="section-title">إنستغرام</h2>
-            <div class="grid">
-                <!-- الرابط الذي أرسلته (الجديد) -->
+    <!-- PERFORMANCE OVERVIEW -->
+    <section class="section" id="performance">
+        <div class="section-header">
+            <div class="section-icon">📊</div>
+            <div class="section-title-text">نظرة عامة على الأداء</div>
+            <div class="section-divider"></div>
+            <span class="badge-gold" style="font-size:0.65rem;padding:0.25rem 0.7rem;border:1px solid var(--gold);border-radius:20px;color:var(--gold)">
+                <span class="live-dot"></span>مباشر
+            </span>
+        </div>
+
+        <div class="perf-card">
+            <div class="perf-title">📈 إحصائيات الصفحات - تحديث شهري آلي</div>
+            <div class="perf-grid">
+                <div>
+                    <div class="perf-num" data-counter="124">0</div>
+                    <div class="perf-label">منشور هذا الشهر</div>
+                </div>
+                <div>
+                    <div class="perf-num" data-counter="87">0</div>
+                    <div class="perf-label">معدل التفاعل %</div>
+                </div>
+                <div>
+                    <div class="perf-num" data-counter="6">0</div>
+                    <div class="perf-label">منصات تواصل</div>
+                </div>
+                <div>
+                    <div class="perf-num" data-counter="12">0</div>
+                    <div class="perf-label">حسابات نشطة</div>
+                </div>
+                <div>
+                    <div class="perf-num" data-counter="30">0</div>
+                    <div class="perf-label">تقرير يومي</div>
+                </div>
+                <div>
+                    <div class="perf-num" data-counter="99">0</div>
+                    <div class="perf-label">نسبة الاستجابة %</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOCIAL MEDIA SECTION -->
+    <section class="section" id="social">
+        <div class="section-header">
+            <div class="section-icon">📱</div>
+            <div class="section-title-text">أداء صفحات التواصل الاجتماعي</div>
+            <div class="section-divider"></div>
+            <span class="section-badge">تحديث شهري</span>
+        </div>
+
+        <!-- Instagram -->
+        <div style="margin-bottom:2.5rem">
+            <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;font-size:0.95rem;font-weight:700;color:var(--text-mode)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="url(#hero-ig)"><defs><linearGradient id="hero-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                إنستغرام
+            </div>
+            <div class="grid-2">
                 <a href="https://mazn44.github.io/InstagramG/" class="card" data-type="instagram">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="url(#ig-grad)"><defs><linearGradient id="ig-grad" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    <div class="card-tag">جديد</div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="url(#ig1)"><defs><linearGradient id="ig1" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
                     </div>
-                    <div class="card-content">
+                    <div class="card-body">
                         <div class="card-title">إنستغرام الجديد</div>
-                        <div class="card-sub"> الحساب الجديد </div>
+                        <div class="card-desc">الحساب الجديد · أداء الصفحة ونقاط القوة</div>
                     </div>
+                    <div class="card-arrow">←</div>
                 </a>
-
-                <!-- الرابط الذي أرسلته (القديم) -->
                 <a href="https://mazn44.github.io/InstagramA/" class="card" data-type="instagram">
-                    <div class="icon-wrapper">
-                         <svg viewBox="0 0 24 24" fill="#a8a29e"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="#9ca3af"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
                     </div>
-                    <div class="card-content">
+                    <div class="card-body">
                         <div class="card-title">إنستغرام القديم</div>
-                        <div class="card-sub">الحساب  الأساسية</div>
+                        <div class="card-desc">الحساب الأساسي · أداء الصفحة الرئيسية</div>
                     </div>
+                    <div class="card-arrow">←</div>
                 </a>
             </div>
-        </section>
+        </div>
 
-        <!-- ================= قسم فيسبوك ================= -->
-        <section class="section">
-            <h2 class="section-title">فيسبوك</h2>
-            <div class="grid">
-                <!-- ضع رابط فيسبوك الجديد بدلاً من علامة # -->
+        <!-- Facebook -->
+        <div style="margin-bottom:2.5rem">
+            <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;font-size:0.95rem;font-weight:700;color:var(--text-mode)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                فيسبوك
+            </div>
+            <div class="grid-2">
                 <a href="https://mazn44.github.io/FacebookG/" class="card" data-type="facebook">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">فيسبوك الجديد</div>
-                        <div class="card-sub">الحساب الجديد </div>
-                    </div>
+                    <div class="card-tag">جديد</div>
+                    <div class="card-icon"><svg viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+                    <div class="card-body"><div class="card-title">فيسبوك الجديد</div><div class="card-desc">الحساب الجديد · أداء الصفحة ومعدلات التفاعل</div></div>
+                    <div class="card-arrow">←</div>
                 </a>
-
-                <!-- ضع رابط فيسبوك القديم بدلاً من علامة # -->
                 <a href="https://mazn44.github.io/FacebookA/" class="card" data-type="facebook">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#60a5fa"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">فيسبوك القديم</div>
-                        <div class="card-sub"> الحساب القديم</div>
-                    </div>
+                    <div class="card-icon"><svg viewBox="0 0 24 24" fill="#60a5fa"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+                    <div class="card-body"><div class="card-title">فيسبوك القديم</div><div class="card-desc">الحساب القديم · أداء الصفحة الأصلية</div></div>
+                    <div class="card-arrow">←</div>
                 </a>
             </div>
-        </section>
+        </div>
 
-        <!-- ================= قسم تيك توك ================= -->
-        <section class="section">
-            <h2 class="section-title">تيك توك</h2>
-            <div class="grid">
-                <!-- ضع رابط تيك توك الجديد بدلاً من علامة # -->
+        <!-- TikTok -->
+        <div style="margin-bottom:2.5rem">
+            <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;font-size:0.95rem;font-weight:700;color:var(--text-mode)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#00f2ea"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg>
+                تيك توك
+            </div>
+            <div class="grid-2">
                 <a href="https://mazn44.github.io/TikTok-G/" class="card" data-type="tiktok">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">تيك توك الجديد</div>
-                        <div class="card-sub">الحساب الجديد </div>
-                    </div>
+                    <div class="card-tag">جديد</div>
+                    <div class="card-icon"><svg viewBox="0 0 24 24" fill="#00f2ea"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg></div>
+                    <div class="card-body"><div class="card-title">تيك توك الجديد</div><div class="card-desc">الحساب الجديد · أداء المقاطع ومعدلات المشاهدة</div></div>
+                    <div class="card-arrow">←</div>
                 </a>
-
-                <!-- ضع رابط تيك توك القديم بدلاً من علامة # -->
                 <a href="https://mazn44.github.io/TikTokA/" class="card" data-type="tiktok">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#94a3b8"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">تيك توك القديم</div>
-                        <div class="card-sub"> الحساب القديم </div>
-                    </div>
+                    <div class="card-icon"><svg viewBox="0 0 24 24" fill="#94a3b8"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.14 4.15c.61-.82.95-1.82.95-2.85V8.56a8.27 8.27 0 004.91 1.6v-3.37a5.27 5.27 0 01-2.41-.1z"/></svg></div>
+                    <div class="card-body"><div class="card-title">تيك توك القديم</div><div class="card-desc">الحساب القديم · أداء الصفحة التاريخية</div></div>
+                    <div class="card-arrow">←</div>
                 </a>
             </div>
-        </section>
+        </div>
 
-        <!-- ================= قسم سناب شات ================= -->
-        <section class="section">
-            <h2 class="section-title">سناب شات</h2>
-            <div class="grid">
-                <!-- ضع رابط سناب شات الجديد بدلاً من علامة # -->
+        <!-- Snapchat -->
+        <div style="margin-bottom:1rem">
+            <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;font-size:0.95rem;font-weight:700;color:var(--text-mode)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#fffc00"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg>
+                سناب شات
+            </div>
+            <div class="grid-2">
                 <a href="https://mazn44.github.io/SnapchatG/" class="card" data-type="snapchat">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#fffc00"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">سناب شات الجديد</div>
-                        <div class="card-sub"> الحساب الجديد </div>
-                    </div>
+                    <div class="card-tag">جديد</div>
+                    <div class="card-icon"><svg viewBox="0 0 24 24" fill="#fffc00"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg></div>
+                    <div class="card-body"><div class="card-title">سناب شات الجديد</div><div class="card-desc">الحساب الجديد · أداء القصص والمشاهدات</div></div>
+                    <div class="card-arrow">←</div>
                 </a>
-
-                <!-- ضع رابط سناب شات القديم بدلاً من علامة # -->
                 <a href="https://mazn44.github.io/SnapchatA/" class="card" data-type="snapchat">
-                    <div class="icon-wrapper">
-                         <svg viewBox="0 0 24 24" fill="#fde047"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">سناب شات القديم</div>
-                        <div class="card-sub">الحساب القديم </div>
-                    </div>
+                    <div class="card-icon"><svg viewBox="0 0 24 24" fill="#fde047"><path d="M12.112 0c-1.396 0-2.833.155-3.844.75-.852.5-1.325 1.34-1.467 2.378-.06.438-.073.955-.073 1.547 0 1.258.125 1.84.444 2.296.223.318.577.568 1.05.74-1.28.18-2.613.433-3.952.885-1.29.435-2.02 1.037-2.316 1.748-.313.753-.16 1.666.452 2.68.225.372.502.72.825 1.033.46.444.982.802 1.528 1.055-.386.115-.795.195-1.22.24-.766.082-1.468.267-2.025.61-.75.46-1.125 1.156-1.07 1.986.046.702.43 1.353 1.108 1.862 1.096.822 2.805 1.396 4.887 1.744.156.915.655 1.66 1.48 2.13.71.405 1.57.574 2.507.574h.024c.94 0 1.796-.17 2.506-.574.825-.47 1.324-1.215 1.48-2.13 2.083-.348 3.79-.922 4.888-1.744.677-.51 1.06-1.16 1.107-1.862.056-.83-.318-1.526-1.07-1.986-.556-.343-1.258-.528-2.025-.61-.425-.045-.834-.125-1.22-.24.545-.253 1.068-.61 1.528-1.055.324-.313.6-.66.825-1.033.613-1.014.766-1.927.453-2.68-.297-.71-1.027-1.313-2.317-1.748-1.338-.452-2.67-.705-3.95-.885.47-.172.825-.422 1.048-.74.32-.456.445-1.038.445-2.296 0-.592-.013-1.11-.073-1.547-.142-1.038-.615-1.878-1.467-2.378C14.945.155 13.508 0 12.112 0z"/></svg></div>
+                    <div class="card-body"><div class="card-title">سناب شات القديم</div><div class="card-desc">الحساب القديم · أداء الصفحة التاريخية</div></div>
+                    <div class="card-arrow">←</div>
                 </a>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- ================= منصات أخرى ================= -->
-        <section class="section">
-            <h2 class="section-title">منصات أخرى</h2>
-            <div class="grid">
-                <!-- الرابط الذي أرسلته (خرائط جوجل) -->
-                <a href="https://mazn44.github.io/Google/" class="card" data-type="google">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#34a853"><path d="M12.005 0C7.545 0 3.93 3.615 3.93 8.075c0 1.255.32 2.455.875 3.515C6.44 14.72 10.97 22.8 11.455 23.63a.628.628 0 001.1 0c.485-.83 5.015-8.91 6.65-12.04.555-1.06.875-2.26.875-3.515C20.08 3.615 16.465 0 12.005 0zm0 11.23c-1.74 0-3.155-1.415-3.155-3.155 0-1.74 1.415-3.155 3.155-3.155 1.74 0 3.155 1.415 3.155 3.155 0 1.74-1.415 3.155-3.155 3.155z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">خرائط جوجل</div>
-                        <div class="card-sub">موقعنا على موقعنا </div>
-                    </div>
-                </a>
+    <div class="sep"><div class="sep-line"></div><div class="sep-icon">✦</div><div class="sep-line"></div></div>
 
-                <!-- ضع رابط يوتيوب بدلاً من علامة # -->
-                <a href="https://mazn44.github.io/Youtube/" class="card" data-type="youtube">
-                    <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#ff0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">يوتيوب</div>
-                        <div class="card-sub">قناة يوتويوب المعرض</div>
-                    </div>
-                </a>
+    <!-- PLANS SECTION -->
+    <section class="section" id="plans">
+        <div class="section-header">
+            <div class="section-icon">🏆</div>
+            <div class="section-title-text">خطط المتابعة والتحليل</div>
+            <div class="section-divider"></div>
+            <span class="section-badge">تحديث · اهم معلومات  · تلقائية </span>
+        </div>
 
-                <!-- ضع رابط قنوات المعرض بدلاً من علامة # -->
-                <a href="https://mazn44.github.io/Channels3/" class="card" data-type="youtube">
-                    <div class="icon-wrapper">
-                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">قنوات المعرض</div>
-                        <div class="card-sub"> قناه واتساب و تلجرام وفايبر إيفان </div>
-                    </div>
-                </a>
+        <div class="plan-cards">
+            <div class="plan-card">
+                <span class="plan-icon">🥈</span>
+                <div class="plan-name">تحديث </div>
+                <div class="plan-desc">تقارير أساسية ومتابعة شهرية</div>
+                <ul class="plan-features">
+                    <li>تقرير شهري للمنصات</li>
+                    <li>نقاط القوة والضعف</li>
+                    <li>مقارنة الحسابين</li>
+                    <li>توصيات عامة</li>
+                </ul>
+                <button class="plan-btn">ابدأ الآن</button>
             </div>
-        </section>
 
+            <div class="plan-card featured">
+                <span class="plan-icon">🥇</span>
+                <div class="plan-name">اهم المعلومات </div>
+                <div class="plan-desc">تحليل متقدم ومتابعة أسبوعية</div>
+                <ul class="plan-features">
+                    <li>تقارير أسبوعية تفصيلية</li>
+                    <li>تحليل المنافسين</li>
+                    <li>خطة محتوى شهرية</li>
+                    <li>اجتماع مراجعة دوري</li>
+                    <li>تقرير الإعلانات</li>
+                </ul>
+                <button class="plan-btn">الأكثر شيوعاً</button>
+            </div>
+
+            <div class="plan-card">
+                <span class="plan-icon">💎</span>
+                <div class="plan-name">تلقائية </div>
+                <div class="plan-desc">إدارة كاملة وتحليل يومي</div>
+                <ul class="plan-features">
+                    <li>متابعة يومية مباشرة</li>
+                    <li>لوحة تحكم حصرية</li>
+                    <li>تحليل ذكاء اصطناعي</li>
+                    <li>مدير حساب مخصص</li>
+                    <li>تقارير لحظية</li>
+                    <li>أولوية الدعم الفني</li>
+                </ul>
+                <button class="plan-btn">احصل على PREMIUM</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- OTHER PLATFORMS -->
+    <section class="section" id="other">
+        <div class="section-header">
+            <div class="section-icon">🌐</div>
+            <div class="section-title-text">منصات وروابط أخرى</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="grid-3">
+            <a href="https://mazn44.github.io/Google/" class="card" data-type="google">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="#34a853"><path d="M12.005 0C7.545 0 3.93 3.615 3.93 8.075c0 1.255.32 2.455.875 3.515C6.44 14.72 10.97 22.8 11.455 23.63a.628.628 0 001.1 0c.485-.83 5.015-8.91 6.65-12.04.555-1.06.875-2.26.875-3.515C20.08 3.615 16.465 0 12.005 0zm0 11.23c-1.74 0-3.155-1.415-3.155-3.155 0-1.74 1.415-3.155 3.155-3.155 1.74 0 3.155 1.415 3.155 3.155 0 1.74-1.415 3.155-3.155 3.155z"/></svg></div>
+                <div class="card-body"><div class="card-title">خرائط جوجل</div><div class="card-desc">موقعنا على الخريطة</div></div>
+                <div class="card-arrow">←</div>
+            </a>
+            <a href="https://mazn44.github.io/Youtube/" class="card" data-type="youtube">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="#ff0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
+                <div class="card-body"><div class="card-title">يوتيوب</div><div class="card-desc">قناة المعرض الرسمية</div></div>
+                <div class="card-arrow">←</div>
+            </a>
+            <a href="https://mazn44.github.io/Channels3/" class="card" data-type="gold">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--gold)"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg></div>
+                <div class="card-body"><div class="card-title">قنوات المعرض</div><div class="card-desc">واتساب · تلغرام · فايبر</div></div>
+                <div class="card-arrow">←</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- MILESTONES -->
+    <section class="section" id="milestones">
+        <div class="section-header">
+            <div class="section-icon">🎯</div>
+            <div class="section-title-text">مسيرة إيفان شو الرقمية</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">🚀 إطلاق المنصة الرقمية</div>
+                    <div class="timeline-desc">انطلاق  Ivan shuw رسمياً على منصات التواصل الاجتماعي </div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">📈 توسعة الحضور الرقمي</div>
+                    <div class="timeline-desc">إطلاق حسابات جديدة على إنستغرام وتيك توك وسناب شات</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">🏆 قسم التسويق </div>
+                    <div class="timeline-desc">تأسيس قسم التسويق المتكامل وإطلاق نظام تقييم الأداء</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">🤖 نظام الذكاء الاصطناعي</div>
+                    <div class="timeline-desc">تطوير نظام تقارير آلي بالذكاء الاصطناعي لتحليل الأداء الرقمي</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--gold-light);box-shadow:0 0 15px var(--gold-light)"></div>
+                <div class="timeline-content" style="border-color:var(--gold-light)">
+                    <div class="timeline-title">✨ الإطلاق التجريبي لنظام المتابعة المتكامل</div>
+                    <div class="timeline-desc">   · لوحة وصول سريعة للمواقع التواصل والاحصائيات      </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-logo"> Ivan shuw</div>
+    <div class="footer-text">مركز الأداء الرقمي · قسم التسويق </div>
+    <div class="footer-links">
+        <a href="https://mazn44.github.io/InstagramG/" class="footer-link">إنستغرام</a>
+        <a href="https://mazn44.github.io/FacebookG/" class="footer-link">فيسبوك</a>
+        <a href="https://mazn44.github.io/TikTok-G/" class="footer-link">تيك توك</a>
+        <a href="https://mazn44.github.io/SnapchatG/" class="footer-link">سناب شات</a>
+        <a href="https://mazn44.github.io/Youtube/" class="footer-link">يوتيوب</a>
     </div>
+    <div class="footer-copy">© 2026 معرض إيفان  · جميع الحقوق محفوظة · Ivan Show </div>
+</footer>
 
-    <script>
-        // --------------------------------------------------
-        // 1. نظام الجزيئات الخفيف (Particles System - 60fps)
-        // --------------------------------------------------
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        let particlesArray = [];
-        
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+<script>
+// ===== PARTICLES =====
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+resize();
+window.addEventListener('resize', resize);
 
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 0.4;
-                this.speedY = (Math.random() - 0.5) * 0.4;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if(this.x > canvas.width) this.x = 0;
-                if(this.x < 0) this.x = canvas.width;
-                if(this.y > canvas.height) this.y = 0;
-                if(this.y < 0) this.y = canvas.height;
-            }
-            draw() {
-                // اللون يتغير حسب المظهر (فاتح/داكن)
-                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-                ctx.fillStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
+class P {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.s = Math.random() * 1.5 + 0.3;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.life = Math.random();
+    }
+    update() {
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    }
+    draw() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        ctx.fillStyle = isLight ? `rgba(100,70,0,0.12)` : `rgba(201,162,39,0.2)`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+const count = innerWidth < 768 ? 30 : 60;
+for (let i = 0; i < count; i++) particles.push(new P());
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+}
+animate();
+
+// ===== SCROLL BAR =====
+window.addEventListener('scroll', () => {
+    const bar = document.getElementById('scroll-bar');
+    const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+    bar.style.width = Math.min(100, pct) + '%';
+
+    const bt = document.getElementById('back-top');
+    if (scrollY > 400) bt.classList.add('visible'); else bt.classList.remove('visible');
+});
+
+// ===== THEME =====
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.addEventListener('click', () => {
+    const html = document.documentElement;
+    const isLight = html.getAttribute('data-theme') === 'light';
+    html.setAttribute('data-theme', isLight ? '' : 'light');
+    document.getElementById('sun-ic').style.display = isLight ? 'none' : 'block';
+    document.getElementById('moon-ic').style.display = isLight ? 'block' : 'none';
+});
+
+// ===== 3D TILT =====
+document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        const rx = ((y - r.height/2) / r.height) * -10;
+        const ry = ((x - r.width/2) / r.width) * 10;
+        card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+
+    // Ripple
+    card.addEventListener('click', e => {
+        const r = card.getBoundingClientRect();
+        const rp = document.createElement('span');
+        rp.className = 'ripple-fx';
+        const size = Math.max(r.width, r.height);
+        rp.style.cssText = `left:${e.clientX-r.left}px;top:${e.clientY-r.top}px;width:${size}px;height:${size}px;margin-left:-${size/2}px;margin-top:-${size/2}px;position:absolute;`;
+        card.appendChild(rp);
+        setTimeout(() => rp.remove(), 700);
+    });
+});
+
+// ===== SCROLL REVEAL =====
+const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.section').forEach(s => obs.observe(s));
+
+// ===== COUNTER ANIMATION =====
+const counterObs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const el = entry.target;
+            const target = parseInt(el.getAttribute('data-counter'));
+            let current = 0;
+            const step = Math.ceil(target / 40);
+            const timer = setInterval(() => {
+                current = Math.min(current + step, target);
+                el.textContent = current;
+                if (current >= target) clearInterval(timer);
+            }, 40);
+            counterObs.unobserve(el);
         }
+    });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-counter]').forEach(el => counterObs.observe(el));
 
-        function initParticles() {
-            particlesArray = [];
-            let count = window.innerWidth < 768 ? 30 : 60; // تخفيف العدد للموبايل
-            for (let i = 0; i < count; i++) {
-                particlesArray.push(new Particle());
-            }
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-                particlesArray[i].draw();
-            }
-            requestAnimationFrame(animateParticles);
-        }
-
-        initParticles();
-        animateParticles();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            initParticles();
-        });
-
-        // --------------------------------------------------
-        // 2. تأثير الميلان 3D للبطاقات (3D Tilt Effect)
-        // --------------------------------------------------
-        const cards = document.querySelectorAll('.card');
-        
-        cards.forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                // حسابات دقيقة لميلان ناعم جداً
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                
-                const rotateX = ((y - centerY) / centerY) * -8; // أقصى ميل 8 درجات
-                const rotateY = ((x - centerX) / centerX) * 8;
-
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
-            });
-
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
-            });
-
-            // --------------------------------------------------
-            // 3. تأثير النبضة الضوئية عند النقر (Ripple Click Effect)
-            // --------------------------------------------------
-            card.addEventListener('click', function(e) {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple');
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                // تحديد حجم النبضة ليغطي البطاقة
-                const size = Math.max(rect.width, rect.height);
-                ripple.style.width = ripple.style.height = `${size}px`;
-                ripple.style.transform = `translate(-50%, -50%) scale(0)`;
-                
-                this.appendChild(ripple);
-
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-        });
-
-        // --------------------------------------------------
-        // 4. تبديل المظهر (Dark / Light Mode)
-        // --------------------------------------------------
-        const themeBtn = document.getElementById('themeBtn');
-        const htmlDoc = document.documentElement;
-        const sunIcon = document.getElementById('sun-icon');
-        const moonIcon = document.getElementById('moon-icon');
-
-        themeBtn.addEventListener('click', () => {
-            const currentTheme = htmlDoc.getAttribute('data-theme');
-            if(currentTheme === 'light') {
-                htmlDoc.removeAttribute('data-theme');
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
-            } else {
-                htmlDoc.setAttribute('data-theme', 'light');
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
-            }
-        });
-
-        // --------------------------------------------------
-        // 5. ظهور الأقسام بشكل تدريجي عند التمرير (Scroll Reveal)
-        // --------------------------------------------------
-        const sections = document.querySelectorAll('.section');
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: "0px 0px -50px 0px"
-        };
-
-        const observer = new IntersectionObserver(function(entries, observer) {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        sections.forEach(section => {
-            observer.observe(section);
-        });
-
-    </script>
+// ===== NAV ACTIVE =====
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (scrollY >= s.offsetTop - 200) current = s.id; });
+    navItems.forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + current);
+    });
+});
+</script>
 </body>
 </html>
-
+ 
